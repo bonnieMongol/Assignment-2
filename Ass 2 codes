@@ -1,0 +1,68 @@
+---
+# title: "Assignment 2 Bolortungalag"
+# output: "html_document"
+# date: "2024-05-13"
+---
+
+
+library(zoo)
+library(ggplot2)
+library(tidyverse)
+library(readxl)
+library(kableExtra)
+testData3<-read_xlsx("/Users/bogi/Desktop/FXUA/Buss_579/auto_mpg_file.xlsx")
+
+
+df<-head(testData3)
+kable(df)%>%
+  kable_styling(bootstrap_options = "striped", font_size = 10, full_width = F)
+
+str(testData3) 
+  
+#Convert to numeric for correlations
+testData3$mpg<-as.numeric(testData3$mpg)
+testData3$horsepower<-as.numeric(testData3$horsepower)
+testData3$origin<-as.numeric(testData3$origin)
+
+summary(testData3) #Identify any NA's in numeric columns
+
+testData4 <- replace(testData3, TRUE, lapply(testData3, na.aggregate))
+
+summary(testData4)
+
+cor(testData3$mpg, testData3$cylinders)
+
+cor(testData4$mpg, testData4$cylinders)
+
+cor(testData4$mpg, testData4$weight)
+
+cor(testData4$mpg, testData4$"model year")
+
+cor(testData4$mpg, testData4$origin)
+
+cor(testData4$"model year", testData4$origin)
+
+linearRegModel1 <- lm(mpg ~ testData4$"model year", data=testData4)
+print(linearRegModel1)
+
+linearRegModel2 <- lm(mpg ~ cylinders, data=testData4)
+print(linearRegModel2)
+
+summary(linearRegModel1)
+
+summary(linearRegModel2)
+
+anova(linearRegModel1)
+
+anova(linearRegModel2)
+
+ggplot(testData4, aes(testData4$"model year", mpg) ) + geom_point() + geom_smooth(method=lm)
+
+ggplot(testData4, aes(mpg, cylinders) ) + geom_point() + geom_smooth(method=lm)
+
+predlinearRegModel2 <- predict(linearRegModel2, interval = "prediction")
+testData5<- cbind(testData3, predlinearRegModel2)
+
+plot1 <- ggplot(testData5, aes(cylinders, mpg)) + geom_point() + stat_smooth(method = lm)
+
+plot1 + geom_line(aes(y = lwr), color = "black", linetype = "dashed")+ geom_line(aes(y = upr), color = "black", linetype = "dashed")
